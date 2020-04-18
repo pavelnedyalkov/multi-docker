@@ -1,0 +1,22 @@
+sudo: required
+services:
+ - docker
+
+before_install:
+ - docker build -t pavelnn/react-test -f ./client/Dockerfile.dev ./client
+
+script:
+ - docker run pavelnn/react-test npm test -- --coverage
+
+after_success:
+ - docker build -t pavelnn/multi-client ./client
+ - docker build -t pavelnn/multi-nginx ./nginx
+ - docker build -t pavelnn/multi-server ./server
+ - docker build -t pavelnn/multi-worker ./worker
+ #Log in to docker CLI.
+ - echo "DOCKER_PASSWORD" | docker login -u "$DOCKER_ID" --password-stdin
+ #Take these images and push them to dockerhub.
+ - docker push pavelnn/multi-client
+ - docker push pavelnn/multi-nginx
+ - docker push pavelnn/multi-server
+ - docker push pavelnn/multi-worker
